@@ -25,8 +25,6 @@ const generateOTP = () => {
 
 const signIn = async ({ body: params }, res) => {
   try {
-    console.log(params);
-
     const userDetailsCollection = dataBase.collection("UserDetails");
     let { emailId, password } = params;
 
@@ -86,13 +84,11 @@ const resendOTP = async ({ body: params }, res) => {
 
 const updatePassword = async ({ body: params }, res) => {
   try {
-    const { emailId, password } = params;
-
+    const { emailId, newPassword: password } = params;
     const result = await userDetailsCollection.updateOne(
       { emailId },
       { $set: { password } }
     );
-
     res.json({ status: "Password Saved Successfully." } || {});
   } catch (err) {
     res.status(500);
