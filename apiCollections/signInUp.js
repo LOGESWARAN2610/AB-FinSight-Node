@@ -27,12 +27,24 @@ const signIn = async ({ body: params }, res) => {
   try {
     const userDetailsCollection = dataBase.collection("UserDetails");
     let { emailId, password } = params;
+    console.log({ emailId, password });
 
-    const result = await userDetailsCollection.findOne({ emailId, password });
-    res.json(result || {});
+    // Check if the account exists
+    const user = await userDetailsCollection.findOne({
+      emailId: { $regex: new RegExp(`^${emailId}$`, "i") },
+    });
+
+    if (!user) {
+      return res.json({ message: "notExist" });
+    }
+
+    if (user.password !== password) {
+      return res.json({ message: "inValidPassword" });
+    }
+
+    res.json(user || {});
   } catch (err) {
-    res.status(500);
-    res.send(err["message"]);
+    res.status(500).json(err["message"]);
   }
 };
 
