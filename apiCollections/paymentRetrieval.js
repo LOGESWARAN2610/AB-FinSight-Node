@@ -11,7 +11,7 @@ const getPaymentDetailsForDates = async ({ body: params }, res) => {
     let query = [
       {
         $match: {
-          date1: {
+          date: {
             $gte: sDate,
             $lte: eDate,
           },
@@ -68,7 +68,7 @@ const updatePaymentStatusForDates = async ({ body: params }, res) => {
 
     const result = paymentDetailsCollection.updateMany(
       {
-        date1: {
+        date: {
           $gte: sDate,
           $lte: eDate,
         },
