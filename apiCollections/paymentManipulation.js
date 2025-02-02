@@ -8,19 +8,19 @@ const getPaymentDetails = async ({ body: params }, res) => {
   try {
     let { date, userId, isAdmin = false } = params;
     let query = [
-      {
-        $addFields: {
-          datePart: {
-            $dateToString: {
-              format: "%d/%m/%Y",
-              date: { $toDate: "$date" },
-            },
-          },
-        },
-      },
+      // {
+      //   $addFields: {
+      //     datePart: {
+      //       $dateToString: {
+      //         format: "%d/%m/%Y",
+      //         date: { $toDate: "$date" },
+      //       },
+      //     },
+      //   },
+      // },
       {
         $match: {
-          datePart: date,
+          date,
         },
       },
     ];
