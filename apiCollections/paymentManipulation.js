@@ -88,11 +88,15 @@ const storeInvoice = async ({ body: params }, res) => {
       filePath = process["env"]["INVOICE_PATH"];
 
     const result = fileArray.map((imageData, index) => {
+      console.log({ imageData });
+
       const base64String = imageData["base64"],
         base64Data = base64String.replace(/^data:image\/\w+;base64,/, ""),
         buffer = Buffer.from(base64Data, "base64"),
         fileName = imageData["fileName"] || generateAlphanumeric(10) + ".png";
-
+      if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(filePath, { recursive: true });
+      }
       fs.writeFile(filePath + fileName, buffer, (err) => {
         if (err) {
           console.error("Error:", err);
