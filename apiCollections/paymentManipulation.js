@@ -2,6 +2,8 @@ const { ObjectId } = require("mongodb");
 const { dataBase } = require("../config/db.config.js");
 require("dotenv").config();
 const fs = require("fs");
+const path = require("path");
+
 const paymentDetailsCollection = dataBase.collection("PaymentDetails");
 
 const getPaymentDetails = async ({ body: params }, res) => {
@@ -125,11 +127,25 @@ const generateAlphanumeric = (length = 10) => {
 
   return result;
 };
+const getInvoice = async ({ body: params }, res) => {
+  let filePath = process["env"]["INVOICE_PATH"];
+  const { fileName } = params;
+  filePath = path
+    .join(__dirname, "assets", "Invoice", fileName)
+    .replace("\\apiCollections", "");
+  console.log({ filePath });
 
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  res.sendFile(filePath);
+};
 module.exports = {
   addPayment,
   getPaymentDetails,
   storeInvoice,
   UpdatePayment,
   deletePayment,
+  getInvoice,
 };

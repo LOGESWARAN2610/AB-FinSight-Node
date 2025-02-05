@@ -13,6 +13,7 @@ const {
   storeInvoice,
   UpdatePayment,
   deletePayment,
+  getInvoice,
 } = require("../apiCollections/paymentManipulation.js");
 const {
   getPaymentDetailsForDates,
@@ -29,6 +30,7 @@ router.use("/addPayment", addPayment);
 router.use("/UpdatePayment", UpdatePayment);
 router.use("/getPaymentDetails", getPaymentDetails);
 router.use("/storeInvoice", storeInvoice);
+router.use("/getInvoice", getInvoice);
 router.use("/getPaymentDetailsForDates", getPaymentDetailsForDates);
 router.use("/updatePaymentStatusForDates", updatePaymentStatusForDates);
 router.use("/getPaymentTransaction", getPaymentTransaction);
