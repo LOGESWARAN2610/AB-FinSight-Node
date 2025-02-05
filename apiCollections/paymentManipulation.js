@@ -42,8 +42,19 @@ const getPaymentDetails = async ({ body: params }, res) => {
     res.send(err["message"]);
   }
 };
+function trimObjectValues(obj) {
+  for (let key in obj) {
+    if (typeof obj[key] === "string") {
+      obj[key] = obj[key].trim();
+    } else if (typeof obj[key] === "object" && obj[key] !== null) {
+      trimObjectValues(obj[key]); // Recursively trim nested objects
+    }
+  }
+  return obj;
+}
 const addPayment = async ({ body: params }, res) => {
   try {
+    params = trimObjectValues(params);
     const result = await paymentDetailsCollection.insertOne(params);
     res.json({ status: "Success" });
   } catch (err) {
