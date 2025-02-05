@@ -86,19 +86,21 @@ const deletePayment = async ({ body: params }, res) => {
 };
 const storeInvoice = async ({ body: params }, res) => {
   try {
-    const { file: fileArray } = params,
+    let { file: fileArray } = params,
       filePath = process["env"]["INVOICE_PATH"];
 
     const result = fileArray.map((imageData, index) => {
-      console.log({ imageData });
-
       const base64String = imageData["base64"],
         base64Data = base64String.replace(/^data:image\/\w+;base64,/, ""),
         buffer = Buffer.from(base64Data, "base64"),
-        fileName = imageData["fileName"] || generateAlphanumeric(10) + ".png";
+        fileName = imageData["fileName"],
+        fileFolder = fileName.split(".")[0].split("_");
+      fileFolder.pop();
+      filePath = filePath + fileFolder.join("_") + "/";
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, { recursive: true });
       }
+
       fs.writeFile(filePath + fileName, buffer, (err) => {
         if (err) {
           console.error("Error:", err);
@@ -111,6 +113,8 @@ const storeInvoice = async ({ body: params }, res) => {
 
     res.json(result.map((fileName) => ({ fileName })));
   } catch (err) {
+    console.log(err["message"]);
+
     res.status(500);
     res.send(err["message"]);
   }
@@ -129,9 +133,12 @@ const generateAlphanumeric = (length = 10) => {
 };
 const getInvoice = async ({ body: params }, res) => {
   let filePath = process["env"]["INVOICE_PATH"];
-  const { fileName } = params;
+  const { fileName } = params,
+    fileFolder = fileName.split(".")[0].split("_");
+  fileFolder.pop();
+
   filePath = path
-    .join(__dirname, "assets", "Invoice", fileName)
+    .join(__dirname, "assets", "Invoice", fileFolder.join("_"), fileName)
     .replace("\\apiCollections", "");
   console.log({ filePath });
 
