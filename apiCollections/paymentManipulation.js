@@ -78,7 +78,7 @@ const UpdatePayment = async ({ body: params }, res) => {
     try {
       const result = await paymentDetailsCollection.updateOne(
         { _id: new ObjectId(_id) },
-        { $set: { amount, purpose, paidBy } }
+        { $set: { amount, purpose, paidBy, invoiceFiles } }
       );
     } catch (error) {
       console.error("Error form UpdatePayment ====> ", error);
