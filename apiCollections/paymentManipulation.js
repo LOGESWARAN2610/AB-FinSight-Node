@@ -55,9 +55,18 @@ function trimObjectValues(obj) {
 const addPayment = async ({ body: params }, res) => {
   try {
     params = trimObjectValues(params);
+
+    params["invoiceFiles"] = await storeInvoice({
+      body: {
+        file: params["invoiceFiles"].filter(({ isSaved }) => !isSaved),
+        isReturn: true,
+      },
+    });
     const result = await paymentDetailsCollection.insertOne(params);
     res.json({ status: "Success" });
   } catch (err) {
+    console.log("addPayment ===> ", err["message"]);
+
     res.status(500);
     res.send(err["message"]);
   }
@@ -69,7 +78,7 @@ const UpdatePayment = async ({ body: params }, res) => {
     try {
       const result = await paymentDetailsCollection.updateOne(
         { _id: new ObjectId(_id) },
-        { $set: { invoiceFiles, amount, purpose, paidBy } }
+        { $set: { amount, purpose, paidBy } }
       );
     } catch (error) {
       console.error("Error form UpdatePayment ====> ", error);
@@ -97,7 +106,7 @@ const deletePayment = async ({ body: params }, res) => {
 };
 const storeInvoice = async ({ body: params }, res) => {
   try {
-    let { file: fileArray } = params,
+    let { file: fileArray, isReturn = false } = params,
       filePath = process["env"]["INVOICE_PATH"];
 
     const result = fileArray.map((imageData, index) => {
@@ -107,6 +116,7 @@ const storeInvoice = async ({ body: params }, res) => {
         fileName = imageData["fileName"],
         fileFolder = fileName.split(".")[0].split("_");
       fileFolder.pop();
+
       filePath = filePath + fileFolder.join("_") + "/";
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, { recursive: true });
@@ -121,10 +131,12 @@ const storeInvoice = async ({ body: params }, res) => {
       });
       return fileName;
     });
-
+    if (isReturn) {
+      return result.map((fileName) => ({ fileName }));
+    }
     res.json(result.map((fileName) => ({ fileName })));
   } catch (err) {
-    console.log(err["message"]);
+    console.log("storeInvoice ===> ", err["message"]);
 
     res.status(500);
     res.send(err["message"]);
@@ -151,7 +163,7 @@ const getInvoice = async ({ body: params }, res) => {
   filePath = path
     .join(__dirname, "assets", "Invoice", fileFolder.join("_"), fileName)
     .replace("\\apiCollections", "");
-  console.log({ filePath });
+  // console.log({ filePath });
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: "File not found" });
