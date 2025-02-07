@@ -48,4 +48,4 @@ const sendRequestEmail = ({ eDate, sDate, amount, notes }) => {
   );
 };
 
-module.exports = sendEmail;
+export { sendRequestEmail };
