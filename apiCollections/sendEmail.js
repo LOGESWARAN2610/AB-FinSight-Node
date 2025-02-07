@@ -54,4 +54,4 @@ const sendRequestEmail = ({ eDate, sDate, amount, notes }) => {
   );
 };
 
-export { sendRequestEmail };
+module.exports = { sendRequestEmail };
