@@ -1,6 +1,7 @@
 const { dataBase } = require("../config/db.config.js");
 require("dotenv").config();
 const fs = require("fs");
+const sendEmail = require("./sendEmail.js");
 const paymentDetailsCollection = dataBase.collection("PaymentDetails");
 const paymentTransactionCollection = dataBase.collection("PaymentTransaction");
 
@@ -50,6 +51,7 @@ const updatePaymentStatusForDates = async ({ body: params }, res) => {
         requestedOn: new Date(),
         notes,
       });
+      sendRequestEmail({ status, eDate, sDate, amount, requestedBy, notes });
     } else if (status === "Paid") {
       paymentTransactionCollection.updateMany(
         {
@@ -96,6 +98,15 @@ const getPaymentTransaction = async ({ body: params }, res) => {
     res.send(err["message"]);
   }
 };
+
+const sendRequestEmail = async(({ eDate, sDate, amount, notes }) => {
+  sendRequestEmail({
+    eDate,
+    sDate,
+    amount,
+    notes,
+  });
+});
 
 module.exports = {
   getPaymentDetailsForDates,
