@@ -1,7 +1,7 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-async function sendEmail(to, subject, html = "") {
+const sendEmail = (to, subject, html = "") => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -19,12 +19,18 @@ async function sendEmail(to, subject, html = "") {
       html,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    transporter.sendMail(mailOptions).then(
+      function (info) {
+        console.log("Email sent:", info.response);
+      },
+      function (err) {
+        console.error(err);
+      }
+    );
   } catch (error) {
     console.error("Error sending email:", error);
   }
-}
+};
 const sendRequestEmail = ({ eDate, sDate, amount, notes }) => {
   sendEmail(
     "logeswaran.palani@analyticbrains.com",
