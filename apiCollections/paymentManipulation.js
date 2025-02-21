@@ -62,6 +62,8 @@ const addPayment = async ({ body: params }, res) => {
         isReturn: true,
       },
     });
+    const { date } = params;
+    params["addedDate"] = date.split("-").reverse().join("/");
     const result = await paymentDetailsCollection.insertOne(params);
     res.json({ status: "Success" });
   } catch (err) {
