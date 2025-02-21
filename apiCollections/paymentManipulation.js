@@ -3,6 +3,7 @@ const { dataBase } = require("../config/db.config.js");
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
+const PDFDocument = require("pdfkit");
 
 const paymentDetailsCollection = dataBase.collection("PaymentDetails");
 
@@ -173,6 +174,84 @@ const getInvoice = async ({ body: params }, res) => {
 
   res.sendFile(filePath);
 };
+const generateInvoiceSummary = async ({ body: params }, res) => {
+  try {
+    const { from = "2025-02-01", to = "2025-02-05" } = params || {};
+    console.log(from, to);
+    const result = await paymentDetailsCollection
+      .find({
+        date: {
+          $gte: from,
+          $lte: to,
+        },
+      })
+      .toArray();
+    if (result) {
+      console.log("result", result);
+
+      const images = result
+        .flatMap((item) => {
+          return item["invoiceFiles"].length > 0
+            ? item["invoiceFiles"].map(({ fileName }) => {
+                console.log(
+                  __dirname,
+                  "assets",
+                  "Invoice",
+                  item["date"].replaceAll("-", "_"),
+                  fileName
+                );
+
+                const filePath = path
+                  .join(
+                    __dirname,
+                    "assets",
+                    "Invoice",
+                    item["date"].replaceAll("-", "_"),
+                    fileName
+                  )
+                  .replace("/apiCollections", "");
+
+                return filePath;
+              })
+            : [];
+        })
+        .filter((_) => _);
+      console.log(images);
+
+      imagesToPdf(images, "output.pdf");
+    }
+  } catch (error) {
+    console.log("error from generateInvoiceSummary ====> ", error);
+  }
+};
+function imagesToPdf(imagePaths, outputPdfPath) {
+  const doc = new PDFDocument({ size: "A4" }); // Standard A4 page size
+  const stream = fs.createWriteStream(outputPdfPath);
+  doc.pipe(stream);
+
+  const imagesPerPage = 4;
+  const imagesPerRow = 2;
+  const margin = 20;
+  const imageWidth = (doc.page.width - margin * 3) / imagesPerRow;
+  const imageHeight = imageWidth * (16 / 9); // Adjust based on aspect ratio
+
+  imagePaths.forEach((imagePath, index) => {
+    if (index % imagesPerPage === 0) doc.addPage(); // Start a new page every 4 images
+
+    const row = Math.floor((index % imagesPerPage) / imagesPerRow);
+    const col = index % imagesPerRow;
+
+    const x = margin + col * (imageWidth + margin);
+    const y = margin + row * (imageHeight + margin);
+
+    doc.image(imagePath, x, y, { width: imageWidth, height: imageHeight });
+  });
+
+  doc.end();
+  stream.on("finish", () =>
+    console.log(`PDF created successfully: ${outputPdfPath}`)
+  );
+}
 module.exports = {
   addPayment,
   getPaymentDetails,
@@ -180,4 +259,5 @@ module.exports = {
   UpdatePayment,
   deletePayment,
   getInvoice,
+  generateInvoiceSummary,
 };

@@ -14,6 +14,7 @@ const {
   UpdatePayment,
   deletePayment,
   getInvoice,
+  generateInvoiceSummary,
 } = require("../apiCollections/paymentManipulation.js");
 const {
   getPaymentDetailsForDates,
@@ -35,5 +36,6 @@ router.use("/getPaymentDetailsForDates", getPaymentDetailsForDates);
 router.use("/updatePaymentStatusForDates", updatePaymentStatusForDates);
 router.use("/getPaymentTransaction", getPaymentTransaction);
 router.use("/deletePayment", deletePayment);
+router.use("/generateInvoiceSummary", generateInvoiceSummary);
 
 module.exports = router;
