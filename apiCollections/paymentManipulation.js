@@ -175,8 +175,19 @@ const getInvoice = async ({ body: params }, res) => {
   res.sendFile(filePath);
 };
 const generateInvoiceSummary = async ({ body: params }, res) => {
+  imagesToPdf(
+    [
+      "./MarchInvoice/07_03_2025_423956.jpeg",
+      "./MarchInvoice/13_03_2025_423956.jpeg",
+      "./MarchInvoice/18_03_2025_423956.jpeg",
+      "./MarchInvoice/20_03_2025_423956.jpeg",
+      "./MarchInvoice/25_03_2025_423956.jpeg",
+    ],
+    "output.pdf"
+  );
+  return;
   try {
-    const { from = "2025-02-01", to = "2025-02-05" } = params || {};
+    const { from = "2025-02-01", to = "2025-02-28" } = params || {};
     console.log(from, to);
     const result = await paymentDetailsCollection
       .find({
@@ -206,10 +217,10 @@ const generateInvoiceSummary = async ({ body: params }, res) => {
                     __dirname,
                     "assets",
                     "Invoice",
-                    item["date"].replaceAll("-", "_"),
+                    item["date"].split("-").reverse().join("_"),
                     fileName
                   )
-                  .replace("/apiCollections", "");
+                  .replace("\\apiCollections", "");
 
                 return filePath;
               })
@@ -225,18 +236,19 @@ const generateInvoiceSummary = async ({ body: params }, res) => {
   }
 };
 function imagesToPdf(imagePaths, outputPdfPath) {
-  const doc = new PDFDocument({ size: "A4" }); // Standard A4 page size
+  const doc = new PDFDocument({ size: "A4" });
   const stream = fs.createWriteStream(outputPdfPath);
   doc.pipe(stream);
 
-  const imagesPerPage = 4;
-  const imagesPerRow = 2;
-  const margin = 20;
-  const imageWidth = (doc.page.width - margin * 3) / imagesPerRow;
-  const imageHeight = imageWidth * (16 / 9); // Adjust based on aspect ratio
+  const imagesPerPage = 12;
+  const imagesPerRow = 4;
+  const margin = 30;
+  const imageWidth = (doc.page.width - margin * 6) / imagesPerRow;
+  const imageHeight = imageWidth * (16 / 7.5);
+  const fontSize = 8;
 
   imagePaths.forEach((imagePath, index) => {
-    if (index % imagesPerPage === 0) doc.addPage(); // Start a new page every 4 images
+    if (index !== 0 && index % imagesPerPage === 0) doc.addPage();
 
     const row = Math.floor((index % imagesPerPage) / imagesPerRow);
     const col = index % imagesPerRow;
@@ -245,6 +257,18 @@ function imagesToPdf(imagePaths, outputPdfPath) {
     const y = margin + row * (imageHeight + margin);
 
     doc.image(imagePath, x, y, { width: imageWidth, height: imageHeight });
+
+    let fileName = path.basename(imagePath);
+
+    fileName = fileName.split("_");
+    fileName.pop();
+    fileName = fileName.join("-");
+    doc.fontSize(fontSize).fillColor("black");
+    const textWidth = doc.widthOfString(fileName);
+    const textX = x + (imageWidth - textWidth) / 2;
+    const textY = y + imageHeight + 5;
+
+    doc.text(fileName, textX, textY, { width: imageWidth, align: "center" });
   });
 
   doc.end();
